@@ -2,3 +2,5 @@ fastapi
 numpy
 opencv-python
 uvicorn
+python-multipart
+multiprocess

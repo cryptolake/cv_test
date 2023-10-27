@@ -5,18 +5,18 @@ import cv2
 import numpy as np
 from numpy.linalg import norm
 import bisect
-import multiprocessing as mp
+import multiprocess as mp
 
 app = FastAPI()
 
 p_manager = mp.Manager()
-p_frames = None
 p_process = None
+p_frames = p_manager.list([])
 
 def read_video_stream(frames, rtsp_url):
+    capture = cv2.VideoCapture(rtsp_url)
     def brightness(img):
         return np.average(norm(img, axis=2)) / np.sqrt(3)
-    capture = cv2.VideoCapture(rtsp_url)
 
     while True:
         ret, frame = capture.read()
@@ -24,17 +24,16 @@ def read_video_stream(frames, rtsp_url):
             break
         frame = cv2.resize(frame, dsize=(300, 300))
         # insert and sort frame from most bright to least bright
-        bisect.insort(frames, frame, key=lambda x: -brightness(x))
-
-        if len(frames) > 9:
-            frames = frames[:9]
+        frames.append(frame)
+        frames.sort(key=brightness, reverse=True)
+        del frames[9:]
 
 
 @app.post("/start", response_class=JSONResponse)
 async def start(rtsp_url: Annotated[str, Form()]):
     global p_process, p_frames
-    p_frames = p_manager.list()
 
+    p_frames = p_manager.list([])
     p_process = mp.Process(target=read_video_stream,args=(p_frames, rtsp_url))
     p_process.start()
     
@@ -75,6 +74,7 @@ async def stop():
     _, grid_image = cv2.imencode('.jpg', grid_image)
     grid_image_enc = base64.b64encode(grid_image)
 
+    p_frames = p_manager.list([]) 
     return f"""
     <div>
         <img src="data:image/jpg;base64, {str(grid_image_enc, encoding='ascii')}" />
