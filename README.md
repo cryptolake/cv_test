@@ -28,4 +28,4 @@ docker build -t exercise .
 docker run -p 8000:8000 -v /path/to/exercise:/app exercise
 curl -d "rtsp_url=rtsp://platerec:8S5AZ7YasGc3m4@video.platerecognizer.com:8554/demo" http://localhost:8000/start
 curl http://localhost:8000/stop
-```# cv_test
+```
