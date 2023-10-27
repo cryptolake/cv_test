@@ -4,7 +4,6 @@ from typing_extensions import Annotated
 import cv2
 import numpy as np
 from numpy.linalg import norm
-import bisect
 import multiprocess as mp
 
 app = FastAPI()
@@ -71,13 +70,13 @@ async def stop():
         grid_image[y:y+img_h, x:x+img_w, :] = img
 
     # Encode image into base64 to display in html
-    _, grid_image = cv2.imencode('.jpg', grid_image)
+    _, grid_image = cv2.imencode('.png', grid_image)
     grid_image_enc = base64.b64encode(grid_image)
 
     p_frames = p_manager.list([]) 
     return f"""
     <div>
-        <img src="data:image/jpg;base64, {str(grid_image_enc, encoding='ascii')}" />
+        <img src="data:image/png;base64, {str(grid_image_enc, encoding='ascii')}" />
     </div>
 
     """
